@@ -7,6 +7,11 @@ const upload = multer({ dest: "uploads/" }); // Carpeta donde se guardarán los 
 const UPLOADS_FOLDER = "uploads";
 
 // Página HTML para subir archivos
+function saveFiles(file) {
+  const newPath = `./uploads/${file.originalname}`;
+  fs.renameSync(file.path, newPath);
+  return newPath;
+}
 app.get("/", (req, res) => {
   res.send(`
     <h2>Subir archivo</h2>
@@ -22,15 +27,17 @@ app.get("/files", (req, res) => {
     if (err) {
       return res.status(500).send("Error al leer la carpeta.");
     }
-    
-    let fileList = files.map(file => 
-      `<li><a href="/uploads/${file}" download>${file}</a></li>`).join("");
+    console.log(files);
+    let fileList = files
+      .map((file) => `<li><a href="/uploads/${file}" download>${file}</a></li>`)
+      .join("");
 
     res.send(`<h2>Archivos disponibles</h2><ul>${fileList}</ul>`);
   });
 });
 // Ruta para subir archivos
 app.post("/upload", upload.single("file"), (req, res) => {
+  saveFiles(req.file);
   res.send(`Archivo subido: ${req.file.originalname}`);
 });
 
