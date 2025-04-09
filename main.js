@@ -5,7 +5,13 @@ const fs = require("fs");
 const app = express();
 const upload = multer({ dest: "uploads/" }); // Carpeta donde se guardarán los archivos
 const UPLOADS_FOLDER = "uploads";
+const cors = require("cors");
 
+
+app.use("/uploads", express.static("uploads"));
+app.use(cors({
+  origin:"http://localhost:4200"
+}))
 // Página HTML para subir archivos
 function saveFiles(file) {
   const newPath = `./uploads/${file.originalname}`;
@@ -29,17 +35,31 @@ app.get("/files", (req, res) => {
     }
     console.log(files);
     let fileList = files
-      .map((file) => `<li><a href="/uploads/${file}" download>${file}</a></li>`)
+      .map((file) => `<li><a href="/uploads/${file}">${file}</a></li>`)
       .join("");
 
     res.send(`<h2>Archivos disponibles</h2><ul>${fileList}</ul>`);
+
+   /*  fs.readdir(UPLOADS_FOLDER, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: "Error al leer la carpeta." });
+    }
+
+    const fileLinks = files.map((file) => ({
+      name: file,
+      url: `/uploads/${encodeURIComponent(file)}`,
+    }));
+    console.log(fileLinks)
+    res.json(fileLinks); */
   });
 });
+
 // Ruta para subir archivos
 app.post("/upload", upload.single("file"), (req, res) => {
   saveFiles(req.file);
   res.send(`Archivo subido: ${req.file.originalname}`);
 });
+
 
 // Inicia el servidor
 const PORT = 8000;
