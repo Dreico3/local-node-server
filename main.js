@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 });
 //here look all or I think so
 app.get("/files", (req, res) => {
-  fs.readdir(UPLOADS_FOLDER, (err, files) => {
+  /* fs.readdir(UPLOADS_FOLDER, (err, files) => {
     if (err) {
       return res.status(500).send("Error al leer la carpeta.");
     }
@@ -38,9 +38,9 @@ app.get("/files", (req, res) => {
       .map((file) => `<li><a href="/uploads/${file}">${file}</a></li>`)
       .join("");
 
-    res.send(`<h2>Archivos disponibles</h2><ul>${fileList}</ul>`);
+    res.send(`<h2>Archivos disponibles</h2><ul>${fileList}</ul>`); */
 
-   /*  fs.readdir(UPLOADS_FOLDER, (err, files) => {
+    fs.readdir(UPLOADS_FOLDER, (err, files) => {
     if (err) {
       return res.status(500).json({ error: "Error al leer la carpeta." });
     }
@@ -50,7 +50,7 @@ app.get("/files", (req, res) => {
       url: `/uploads/${encodeURIComponent(file)}`,
     }));
     console.log(fileLinks)
-    res.json(fileLinks); */
+    res.json(fileLinks);
   });
 });
 
