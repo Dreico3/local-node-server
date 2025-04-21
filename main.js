@@ -72,6 +72,20 @@ app.get("/music", (req, res) => {
   });
 });
 
+app.get("/videos", (req, res) => {
+  fs.readdir(UPLOADS_VIDEO, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: "Error al leer la carpeta." });
+    }
+    const fileLinks = files.map((file) => ({
+      name: file,
+      url: `/uploads/videos/${encodeURIComponent(file)}`,
+    }));
+    console.log(fileLinks);
+    res.json(fileLinks);
+  });
+});
+
 // Ruta para subir archivos
 app.post("/upload", upload.single("file"), (req, res) => {
   saveFiles(req.file);
