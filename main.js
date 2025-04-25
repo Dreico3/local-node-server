@@ -12,9 +12,10 @@ const cors = require("cors");
 const { url } = require("inspector");
 
 app.use("/uploads", express.static("uploads"));
+app.use(express.json());
 app.use(
   cors({
-    origin: ["http://192.168.0.8:4200", "http://localhost:4200"],
+    origin: ["http://192.168.0.10:4200", "http://localhost:4200"],
   })
 );
 // Página HTML para subir archivos
@@ -34,17 +35,6 @@ app.get("/", (req, res) => {
 });
 //here look all or I think so
 app.get("/images", (req, res) => {
-  /* fs.readdir(UPLOADS_FOLDER, (err, files) => {
-    if (err) {
-      return res.status(500).send("Error al leer la carpeta.");
-    }
-    console.log(files);
-    let fileList = files
-      .map((file) => `<li><a href="/uploads/${file}">${file}</a></li>`)
-      .join("");
-
-    res.send(`<h2>Archivos disponibles</h2><ul>${fileList}</ul>`); */
-
   fs.readdir(UPLOADS_IMAGE, (err, files) => {
     if (err) {
       return res.status(500).json({ error: "Error al leer la carpeta." });
@@ -54,7 +44,6 @@ app.get("/images", (req, res) => {
       name: file,
       url: `/uploads/images/${encodeURIComponent(file)}`,
     }));
-    console.log(fileLinks);
     res.json(fileLinks);
   });
 });
@@ -91,7 +80,27 @@ app.post("/upload", upload.single("file"), (req, res) => {
   saveFiles(req.file);
   res.send(`Archivo subido: ${req.file.originalname}`);
 });
+/* app.post("/create",(req,res)=>{
+  console.log(req)
+}) */
 
+app.post("/create", (req, res) => {
+  const { name } = req.body;
+
+   if (!name || typeof name !== "string") {
+    return res.status(400).send("Nombre inválido");
+  }
+
+  const dir = path.join(__dirname, "uploads", name);
+
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    return res.send({ mensaje: `Carpeta '${name}' creada` });
+  } else {
+    return res.status(409).send("La carpeta ya existe");
+  }
+
+});
 // Inicia el servidor
 const PORT = 8000;
 app.listen(PORT, () => {
