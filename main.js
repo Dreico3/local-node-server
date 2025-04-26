@@ -85,21 +85,21 @@ app.post("/upload", upload.single("file"), (req, res) => {
 }) */
 
 app.post("/create", (req, res) => {
-  const { name } = req.body;
+  const  data  = req.body;
 
-   if (!name || typeof name !== "string") {
+   if (!data.name || typeof data.name !== "string") {
     return res.status(400).send("Nombre inválido");
   }
 
-  const dir = path.join(__dirname, "uploads", name);
+  const dir = path.join(__dirname, "uploads", `${data.ubication}\\${data.name}`);
 
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
-    return res.send({ mensaje: `Carpeta '${name}' creada` });
+    return res.send({ mensaje: `Carpeta '${data.name}' creada` });
   } else {
     return res.status(409).send("La carpeta ya existe");
   }
-
+  //return res.send({ mensaje: `informaicon resivida `, dir});
 });
 // Inicia el servidor
 const PORT = 8000;
