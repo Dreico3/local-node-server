@@ -3,13 +3,29 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const app = express();
-const upload = multer({ dest: "uploads/" }); // Carpeta donde se guardarán los archivos
+//const upload = multer({ dest: "uploads/" }); // Carpeta donde se guardarán los archivos
 const UPLOADS_FOLDER = "uploads/";
 const UPLOADS_IMAGE = "uploads/images";
 const UPLOADS_VIDEO = "uploads/videos";
 const UPLOADS_MUSIC = "uploads/music";
 const cors = require("cors");
 const { url } = require("inspector");
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+app.post('/upload', upload.array('files'), (req, res) => {
+  const folderPath = (req.body.path || '').replace(/\\/g, '/');
+  const targetDir = path.join(__dirname, 'uploads', folderPath);
+  fs.mkdirSync(targetDir, { recursive: true });
+
+  req.files.forEach((file) => {
+    const filePath = path.join(targetDir, file.originalname);
+    fs.writeFileSync(filePath, file.buffer);
+  });
+
+  res.send({ mensaje: 'Archivos subidos correctamente' });
+});
+
 
 app.use("/uploads", express.static("uploads"));
 app.use(express.json());
@@ -76,9 +92,8 @@ app.get("/videos", (req, res) => {
 });
 
 // Ruta para subir archivos
-app.post("/upload", upload.single("file"), (req, res) => {
-  saveFiles(req.file);
-  res.send(`Archivo subido: ${req.file.originalname}`);
+app.post('/upload', upload.array('files'), (req, res) => {
+  res.send({ mensaje: 'Archivos subidos correctamente', files: req.files });
 });
 
 app.get("/others", (req, res) => {
@@ -100,28 +115,6 @@ app.get("/others", (req, res) => {
   });
 });
 
-/* app.post("/create", (req, res) => {
-  const data = req.body;
-
-  if (!data.name || typeof data.name !== "string") {
-    return res.status(400).send("Nombre inválido");
-  }
-
-  const dir = path.join(
-    __dirname,
-    "uploads",
-    `${data.ubication}\\${data.name}`
-  );
-
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-    return res.send({ mensaje: `Carpeta '${data.name}' creada` });
-  } else {
-    return res.status(409).send("La carpeta ya existe");
-  }
-  //return res.send({ mensaje: `informaicon resivida `, dir});
-}); */
-
 app.post("/create", (req, res) => {
   const data = req.body;
 
@@ -129,8 +122,6 @@ app.post("/create", (req, res) => {
     return res.status(400).send("Nombre inválido");
   }
 
-  // Normaliza y limpia la ubicación
-  //const cleanUbication = data.ubication.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
   const dir = path.join(__dirname, "uploads",  data.ubication, data.name);
 
   if (!fs.existsSync(dir)) {
