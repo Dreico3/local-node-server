@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const app = express();
 const upload = multer({ dest: "uploads/" }); // Carpeta donde se guardarán los archivos
-const UPLOADS_FOLDER = "uploads";
+const UPLOADS_FOLDER = "uploads/";
 const UPLOADS_IMAGE = "uploads/images";
 const UPLOADS_VIDEO = "uploads/videos";
 const UPLOADS_MUSIC = "uploads/music";
@@ -80,18 +80,38 @@ app.post("/upload", upload.single("file"), (req, res) => {
   saveFiles(req.file);
   res.send(`Archivo subido: ${req.file.originalname}`);
 });
-/* app.post("/create",(req,res)=>{
-  console.log(req)
-}) */
 
-app.post("/create", (req, res) => {
-  const  data  = req.body;
+app.get("/others", (req, res) => {
+  console.log(req.query, "QUERY");
 
-   if (!data.name || typeof data.name !== "string") {
+  const folderPath = path.join(UPLOADS_FOLDER, req.query.url);
+
+  fs.readdir(folderPath, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: "Error al leer la carpeta." });
+    }
+
+    const fileLinks = files.map((file) => ({
+      name: file,
+      url: `/uploads/${req.query.url}/${encodeURIComponent(file)}`,
+    }));
+
+    res.json(fileLinks);
+  });
+});
+
+/* app.post("/create", (req, res) => {
+  const data = req.body;
+
+  if (!data.name || typeof data.name !== "string") {
     return res.status(400).send("Nombre inválido");
   }
 
-  const dir = path.join(__dirname, "uploads", `${data.ubication}\\${data.name}`);
+  const dir = path.join(
+    __dirname,
+    "uploads",
+    `${data.ubication}\\${data.name}`
+  );
 
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -100,7 +120,27 @@ app.post("/create", (req, res) => {
     return res.status(409).send("La carpeta ya existe");
   }
   //return res.send({ mensaje: `informaicon resivida `, dir});
+}); */
+
+app.post("/create", (req, res) => {
+  const data = req.body;
+
+  if (!data.name || typeof data.name !== "string") {
+    return res.status(400).send("Nombre inválido");
+  }
+
+  // Normaliza y limpia la ubicación
+  //const cleanUbication = data.ubication.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  const dir = path.join(__dirname, "uploads",  data.ubication, data.name);
+
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    return res.send({ mensaje: `Carpeta '${data.name}' creada` });
+  } else {
+    return res.status(409).send("La carpeta ya existe");
+  }
 });
+
 // Inicia el servidor
 const PORT = 8000;
 app.listen(PORT, () => {
